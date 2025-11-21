@@ -420,6 +420,19 @@
         </div>
     </div>
 
+    <!-- Modal ระหว่างกำลังส่ง -->
+    <div id="loadingModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-6 z-40">
+        <div class="glass-effect rounded-2xl p-6 max-w-xs w-full text-center slide-up">
+            <div class="flex justify-center mb-4">
+                <div class="h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">กรุณารอสักครู่</h3>
+            <p class="text-base text-gray-800">
+                กำลังส่งใบสมัครของคุณ...
+            </p>
+        </div>
+    </div>
+
     <script>
         // ===== Cloudinary config =====
         const CLOUD_NAME = "dsdtmdygt";
@@ -435,7 +448,6 @@
             document.getElementById("positionSelection").classList.add("hidden");
             document.getElementById("applicationForm").classList.remove("hidden");
 
-            // จัดการส่วนความพร้อมสาขาพระยาสัจจา
             const availabilitySection = document.getElementById("prayasatjaAvailabilitySection");
             const availabilityRadios = document.querySelectorAll('input[name="prayasatja_availability"]');
 
@@ -470,13 +482,11 @@
             }
         }
 
-        // สร้างช่องประวัติการทำงานตามจำนวนที่เลือก
         function showWorkHistory() {
             const workCountValue = document.getElementById("workCount").value;
             const workHistorySection = document.getElementById("workHistorySection");
             const container = document.getElementById("workHistoryContainer");
 
-            // เคลียร์ของเก่า
             container.innerHTML = "";
 
             if (!workCountValue || workCountValue === "0") {
@@ -655,6 +665,7 @@
 
         function resetForm() {
             document.getElementById("successModal").classList.add("hidden");
+            document.getElementById("loadingModal").classList.add("hidden");
             document.getElementById("applicationForm").classList.add("hidden");
             document.getElementById("positionSelection").classList.remove("hidden");
             document.getElementById("jobApplicationForm").reset();
@@ -672,12 +683,10 @@
             document.getElementById("uploadError").classList.add("hidden");
             document.getElementById("uploadSuccess").classList.add("hidden");
 
-            // รีเซ็ตส่วนประวัติการทำงาน
             document.getElementById("workCount").value = "";
             document.getElementById("workHistorySection").classList.add("hidden");
             document.getElementById("workHistoryContainer").innerHTML = "";
 
-            // รีเซ็ตความพร้อมสาขาพระยาสัจจา
             const availabilitySection = document.getElementById("prayasatjaAvailabilitySection");
             const availabilityRadios = document.querySelectorAll('input[name="prayasatja_availability"]');
             availabilitySection.classList.add("hidden");
@@ -698,9 +707,12 @@
                 }
 
                 const submitBtn = document.getElementById("submitBtn");
+                const loadingModal = document.getElementById("loadingModal");
+
                 submitBtn.disabled = true;
                 submitBtn.textContent = "กำลังส่งข้อมูล";
                 showUploadError("");
+                loadingModal.classList.remove("hidden");
 
                 const formData = new FormData(e.target);
                 const data = Object.fromEntries(formData.entries());
@@ -719,11 +731,13 @@
                         throw new Error("Server error " + response.statusText);
                     }
 
+                    loadingModal.classList.add("hidden");
                     document
                         .getElementById("successModal")
                         .classList.remove("hidden");
                 } catch (error) {
                     console.error("Submit error:", error);
+                    loadingModal.classList.add("hidden");
                     showUploadError("เกิดข้อผิดพลาดในการส่งฟอร์ม กรุณาลองอีกครั้ง");
                     submitBtn.disabled = false;
                 } finally {
@@ -732,14 +746,13 @@
                             .getElementById("successModal")
                             .classList.contains("hidden")
                     ) {
-                        // ส่งสำเร็จแล้ว ปล่อยให้ modal จัดการต่อ
+                        // ถ้าสำเร็จแล้ว ใช้ modal จัดการต่อ
                     } else {
                         submitBtn.textContent = "ส่งใบสมัคร";
                     }
                 }
             });
 
-        // event สำหรับ radio วันที่เริ่มงาน
         document
             .querySelectorAll('input[name="start_date_type"]')
             .forEach((radio) => {
