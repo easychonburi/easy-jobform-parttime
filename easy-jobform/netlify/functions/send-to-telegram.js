@@ -9,7 +9,7 @@ exports.handler = async (event) => {
     TELEGRAM_BOT_TOKEN,
     CHAT_ID_AOAUDOM_PT,
     CHAT_ID_AMATA_WEEKEND_PT,
-    CHAT_ID_PHRAYA_PT,
+    CHAT_ID_BANGSAEN_FULLTIME, // ใช้ห้องที่มีอยู่แล้วใน Netlify ตามรูป
     TELEGRAM_CHAT_ID
   } = process.env;
 
@@ -24,7 +24,7 @@ exports.handler = async (event) => {
     const t = String(text || "");
     if (t.includes("อ่าวอุดม")) return "AOAUDOM_FT";
     if (t.includes("อมตะนคร")) return "AMATA_PT";
-    if (t.includes("พระยาสัจจา")) return "PHRAYA_PT";
+    if (t.includes("บางแสน")) return "BANGSAEN_FT"; // ดักจับคำว่าบางแสน
     return "UNKNOWN";
   };
 
@@ -38,8 +38,8 @@ exports.handler = async (event) => {
     case "AMATA_PT":
       targetChatId = CHAT_ID_AMATA_WEEKEND_PT;
       break;
-    case "PHRAYA_PT":
-      targetChatId = CHAT_ID_PHRAYA_PT || TELEGRAM_CHAT_ID;
+    case "BANGSAEN_FT":
+      targetChatId = CHAT_ID_BANGSAEN_FULLTIME; // วิ่งเข้าห้องบางแสน (กะประจำ) ตรงๆ เลยครับ
       break;
     default:
       targetChatId = TELEGRAM_CHAT_ID || CHAT_ID_AOAUDOM_PT;
@@ -100,7 +100,6 @@ exports.handler = async (event) => {
     availabilityText = escape(data.availability_choice);
   }
 
-  // เตรียมข้อความทั้งหมดที่จะส่ง
   let text = `<b>🔔 ใบสมัครงานใหม่</b>\n\n`;
   text += `<b>ตำแหน่ง:</b> ${escape(data.position)}\n`;
   text += `<b>ชื่อ:</b> ${escape(data.first_name)} ${escape(data.last_name)} (${escape(data.nickname)})\n`;
@@ -110,7 +109,7 @@ exports.handler = async (event) => {
   text += `<b>ที่อยู่:</b> ${escape(data.address)}\n`;
   text += `<b>เริ่มงาน:</b> ${startDateText}\n`;
 
-  if (positionKey === "AMATA_PT" || positionKey === "PHRAYA_PT") {
+  if (positionKey === "AMATA_PT") {
     text += `<b>เวลาที่สะดวก:</b> ${availabilityText}\n`;
   }
 
@@ -120,7 +119,6 @@ exports.handler = async (event) => {
 
   try {
     if (data.photo_base64 && data.photo_base64.startsWith("data:image")) {
-      // ดึงเฉพาะเนื้อหาไฟล์ออกมา (ตัด "data:image/jpeg;base64," ทิ้ง)
       const base64Data = data.photo_base64.split(",")[1];
       const buffer = Buffer.from(base64Data, "base64");
 
@@ -128,7 +126,6 @@ exports.handler = async (event) => {
       formData.append("chat_id", targetChatId);
       formData.append("photo", new Blob([buffer], { type: "image/jpeg" }), "photo.jpg");
       
-      // ป้องกันข้อความยาวเกิน 1,024 ตัวอักษร (ข้อจำกัด Caption ของ Telegram)
       let finalCaption = text;
       if (finalCaption.length > 1024) {
         finalCaption = finalCaption.substring(0, 1020) + "...";
@@ -143,10 +140,9 @@ exports.handler = async (event) => {
       });
 
       if (!photoRes.ok) {
-        throw new Error("Failed to send photo");
+        throw new Error("Failed to send photo with details");
       }
     } else {
-      // ถ้าไม่มีรูป ให้ส่งแบบข้อความธรรมดา
       text += `\n\n<i>⚠️ ผู้สมัครไม่ได้แนบรูปถ่าย หรือเกิดข้อผิดพลาดในการโหลดรูป</i>`;
       
       const textRes = await fetch(`${telegramURL}/sendMessage`, {
@@ -160,7 +156,7 @@ exports.handler = async (event) => {
       });
 
       if (!textRes.ok) {
-        throw new Error("Failed to send message");
+        throw new Error("Failed to send message text");
       }
     }
 
