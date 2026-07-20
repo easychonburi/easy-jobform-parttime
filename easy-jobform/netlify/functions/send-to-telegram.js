@@ -10,6 +10,8 @@ exports.handler = async (event) => {
     CHAT_ID_AOAUDOM_PT,
     CHAT_ID_AMATA_WEEKEND_PT,
     CHAT_ID_BANGSAEN_FULLTIME, // ใช้ห้องที่มีอยู่แล้วใน Netlify ตามรูป
+    CHAT_ID_PHRAYA_PT,
+    CHAT_ID_PATTAYA_FULLTIME,
     TELEGRAM_CHAT_ID
   } = process.env;
 
@@ -25,6 +27,8 @@ exports.handler = async (event) => {
     if (t.includes("อ่าวอุดม")) return "AOAUDOM_FT";
     if (t.includes("อมตะนคร")) return "AMATA_PT";
     if (t.includes("บางแสน")) return "BANGSAEN_FT"; // ดักจับคำว่าบางแสน
+    if (t.includes("พระยาสัจจา")) return "PHRAYA_PT";
+    if (t.includes("พัทยากลาง")) return "PATTAYA_FT";
     return "UNKNOWN";
   };
 
@@ -40,6 +44,12 @@ exports.handler = async (event) => {
       break;
     case "BANGSAEN_FT":
       targetChatId = CHAT_ID_BANGSAEN_FULLTIME; // วิ่งเข้าห้องบางแสน (กะประจำ) ตรงๆ เลยครับ
+      break;
+    case "PHRAYA_PT":
+      targetChatId = CHAT_ID_PHRAYA_PT;
+      break;
+    case "PATTAYA_FT":
+      targetChatId = CHAT_ID_PATTAYA_FULLTIME;
       break;
     default:
       targetChatId = TELEGRAM_CHAT_ID || CHAT_ID_AOAUDOM_PT;
@@ -109,7 +119,7 @@ exports.handler = async (event) => {
   text += `<b>ที่อยู่:</b> ${escape(data.address)}\n`;
   text += `<b>เริ่มงาน:</b> ${startDateText}\n`;
 
-  if (positionKey === "AMATA_PT") {
+  if (positionKey === "AMATA_PT" || positionKey === "PHRAYA_PT") {
     text += `<b>เวลาที่สะดวก:</b> ${availabilityText}\n`;
   }
 
